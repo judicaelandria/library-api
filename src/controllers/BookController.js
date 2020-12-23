@@ -57,7 +57,7 @@ class BookController {
   deleteBook = async (req, res) => {
     const { id } = req.params;
     try {
-      const found = await Book.findByIdAndDelete({ id });
+      const found = await Book.findByIdAndDelete(id);
       if (!found) res.send("Cannot delete the book");
       res.send("Book deleted with access");
     } catch (err) {

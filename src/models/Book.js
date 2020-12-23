@@ -15,7 +15,7 @@ const bookSchema = new mongoose.Schema({
     required: true,
   },
   available: {
-    type: String,
+    type: Boolean,
     required: true,
   },
   image: {
@@ -32,7 +32,6 @@ const validateBook = (book) => {
     author: Joi.string().min(3).max(100).required(),
     publishingDate: Joi.string().required(),
     available: Joi.boolean().required(),
-    image: Joi.string().required(),
   });
   return schema.validate(book);
 };
