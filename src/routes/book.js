@@ -35,7 +35,11 @@ const bookController = new BookController();
 router.get("/fetchAll", bookController.fetchAll);
 router.get("/:id", bookController.book);
 router.post("/createBook", upload.single("image"), bookController.createBook);
-router.patch("/updateBook/:id", bookController.updateBook);
+router.put(
+  "/updateBook/:id",
+  upload.single("image"),
+  bookController.updateBook
+);
 router.delete("/deleteBook/:id", bookController.deleteBook);
 
 module.exports = router;

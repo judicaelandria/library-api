@@ -10,7 +10,7 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
-app.use(cors({ origin: "*", credentials: false }));
+app.use(cors({ origin: "*" }));
 app.use(morgan("dev"));
 app.use("/uploads", express.static("uploads"));
 

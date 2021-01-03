@@ -1,4 +1,6 @@
 const Loan = require("../models/Loan");
+const Book = require("../models/Book");
+const fetch = require("node-fetch");
 
 class LoanController {
   /**
@@ -8,32 +10,48 @@ class LoanController {
     const { book, reader } = req.body;
     try {
       const foundLoan = await Loan.findOne({ book });
-      if (foundLoan)
-        res.status(400).send("This book is already loan by a reader");
-      const newLoan = new Loan({
-        book,
-        reader,
-      });
-      const loan = await newLoan.save();
-      res.status(201).send({ loan });
+      if (foundLoan) {
+        res.status(400).send("This book is already loaned by a reader");
+      } else {
+        const newLoan = new Loan({
+          book,
+          reader,
+        });
+        // await fetch(`http://localhost:5000/api/book/updateBook/${book}`, {
+        //   method: "put",
+        //   body: {
+        //     available: false,
+        //   },
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        const loan = await newLoan.save();
+        res.status(201).send(loan);
+      }
     } catch (err) {
       res.status(404).send("Something went wrong");
+      console.log(err);
     }
   };
   /**
-   * @route PATCH /api/loan/updateLoan
+   * @route PUT /api/loan/updateLoan
    * @param {number} id
    */
   updateLoan = async (req, res) => {
     const { id } = req.params;
     const { book, reader } = req.body;
     try {
-      const foundLoan = await Loan.findOne(id);
-      if (!foundLoan) res.status(404).send("Can not find the loan");
-      foundLoan.book = book || foundLoan.book;
-      foundLoan.reader = reader || foundLoan.reader;
-      const updatedLoan = await foundLoan.save();
-      res.status(200).send("Update successful");
+      await Loan.findByIdAndUpdate(
+        id,
+        {
+          book,
+          reader,
+        },
+        { useFindAndModify: false }
+      ).then((res) => {
+        res.status(200).send("updated loan");
+      });
     } catch (err) {
       res.status(404).send("Something went wrong");
     }
@@ -50,6 +68,7 @@ class LoanController {
       res.status(200).send("deleted");
     } catch (err) {
       res.status(404).send("Something went wrong");
+      console.log({ err });
     }
   };
   /**
@@ -58,10 +77,9 @@ class LoanController {
   fetchAll = async (req, res) => {
     try {
       const loans = await Loan.find()
-        .populate("book", "designation author")
+        .populate("book", "designation author image")
         .populate("reader", "name");
-      console.log(loans);
-      res.status(200).send({ data: loans });
+      res.status(200).send(loans);
     } catch (err) {
       res.status(404).send("Something went wrong");
       console.error({ err });
@@ -80,7 +98,7 @@ class LoanController {
       if (!loan) {
         res.status(400).send("Can't find the loan");
       } else {
-        res.status(200).send({ data: loan });
+        res.status(200).send(loan);
       }
     } catch (err) {
       res.status(404).send("Something went wrong");

@@ -24,30 +24,41 @@ class BookController {
     }
   };
   /**
-   * @route PATCH /api/book/updateBook/:id
+   * @route PUT /api/book/updateBook/:id
    * @param {number} id
    */
   updateBook = async (req, res) => {
-    const { error, value } = validateBook(req.body);
     const { id } = req.params;
-    if (error) {
-      res.status(403).send({ error: error.details[0].message });
-    } else {
-      try {
-        const foundBook = await Book.findOne(id);
-        if (!foundBook) res.status(404).send("Cannot find the book");
-        foundBook.designation = value.designation;
-        foundBook.author = value.author;
-        foundBook.publishingData = value.publishingData;
-        foundBook.available = value.available;
-        const book = await foundBook.update();
-        res.status(201).send({
-          data: book,
-          message: "Successfully updated",
-        });
-      } catch (err) {
-        res.status(404).send("Something went wrong");
+    const { designation, author, publishingDate, available } = req.body;
+    const url = req.protocol + "://" + req.get("host");
+    const isFile = !!req.file;
+    const imageUrl = isFile && url + "/uploads/" + req.file.filename;
+    try {
+      const foundBook = await Book.findById(id);
+      if (!foundBook) {
+        res.status(404).send("cannot find the book");
+      } else {
+        designation
+          ? (foundBook.designation = designation)
+          : (foundBook.designation = foundBook.designation);
+        author
+          ? (foundBook.author = author)
+          : (foundBook.author = foundBook.author);
+        publishingDate
+          ? (foundBook.publishingDate = publishingDate)
+          : (foundBook.publishingDate = foundBook.publishingDate);
+        available
+          ? (foundBook.available = available)
+          : (foundBook.available = foundBook.available);
+        imageUrl
+          ? (foundBook.image = imageUrl)
+          : (foundBook.image = foundBook.image);
       }
+      await foundBook.save();
+      res.status(200).send("updated");
+    } catch (err) {
+      res.status(404).send("Something went wrong");
+      console.log("update book error", err);
     }
   };
   /**
@@ -82,11 +93,12 @@ class BookController {
   book = async (req, res) => {
     const { id } = req.params;
     try {
-      const book = await Book.findOne(id);
+      const book = await Book.findOne({ _id: id });
       if (!book) res.status(404).send("Cannot find the book");
       res.status(200).send(book);
     } catch (err) {
       res.status(404).send("Something went wrong");
+      console.log(err);
     }
   };
 }
